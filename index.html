@@ -1,53 +1,484 @@
 <!doctype html>
-<html>
+<html lang="en">
   <head>
-    <title>KSA-Visitors Mgt </title>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="theme-color" content="#6366f1" />
+
+    <!-- Favicon -->
     <link
       rel="icon"
-      type="image/x-icon"
       href="https://www.carlstahl.com/images/favicon.ico"
+      type="image/x-icon"
     />
+    <link
+      rel="shortcut icon"
+      href="https://www.carlstahl.com/images/favicon.ico"
+      type="image/x-icon"
+    />
+
+    <title>Visitors Mgt-KSA</title>
     <style>
-      body,
-      html {
+      * {
         margin: 0;
         padding: 0;
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        width: 100%;
         height: 100%;
+        overflow: hidden;
+      }
+
+      body {
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu,
+          Cantarell, sans-serif;
+        background: linear-gradient(
+          135deg,
+          #00c51e 0%,
+          #1dff74 50%,
+          #36f36e 100%
+        );
         display: flex;
         flex-direction: column;
       }
-      iframe {
-        flex: 1; /* Take remaining space */
+
+      /* Header */
+      .header {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        padding: 12px 16px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        z-index: 100;
+      }
+
+      .header-title {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .cert-icon {
+        width: 28px;
+        height: 28px;
+        background: linear-gradient(135deg, #dc1d00, #f22353);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 16px;
+        font-weight: bold;
+      }
+
+      .title-text {
+        font-size: 16px;
+        font-weight: 600;
+        color: #1f2937;
+      }
+
+      .refresh-btn {
+        background: #f3f4f6;
         border: none;
+        border-radius: 8px;
+        width: 36px;
+        height: 36px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s;
+        color: #6b7280;
       }
-      .logo-container {
+
+      .refresh-btn:active {
+        background: #e5e7eb;
+        transform: scale(0.95);
+      }
+
+      .refresh-btn.spinning {
+        animation: spin 0.6s linear;
+      }
+
+      /* Main Content */
+      .main-content {
+        flex: 1;
+        padding: 12px;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+
+      .iframe-wrapper {
+        flex: 1;
+        background: white;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow:
+          0 10px 40px rgba(0, 0, 0, 0.15),
+          0 0 0 1px rgba(255, 255, 255, 0.1);
+        position: relative;
+      }
+
+      iframe {
+        width: 100%;
+        height: 100%;
+        border: none;
+        display: block;
+      }
+
+      /* Loading State */
+      .loading-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: white;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        z-index: 50;
+        transition: opacity 0.3s;
+      }
+
+      .loading-overlay.hidden {
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      .loader {
+        width: 60px;
+        height: 60px;
+        position: relative;
+        margin-bottom: 24px;
+      }
+
+      .loader-ring {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        border: 3px solid transparent;
+        border-top-color: #020324;
+        animation: spin 1s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite;
+      }
+
+      .loader-ring:nth-child(2) {
+        border-top-color: #04010c;
+        animation-delay: 0.15s;
+      }
+
+      .loader-ring:nth-child(3) {
+        border-top-color: #100213;
+        animation-delay: 0.3s;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+      .loading-text {
+        color: #01010a;
+        font-size: 15px;
+        font-weight: 500;
+        margin-bottom: 8px;
+      }
+
+      .loading-subtext {
+        color: #9ca3af;
+        font-size: 13px;
+      }
+
+      /* Connection Status */
+      .status-indicator {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 12px;
+        color: #6b7280;
+      }
+
+      .status-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #10b981;
+        animation: pulse 2s infinite;
+      }
+
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.5;
+        }
+      }
+
+      /* Error State */
+      .error-message {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
         text-align: center;
-        padding: 10px;
-        background: #fff; /* optional: give a background */
+        padding: 24px;
+        max-width: 280px;
+        display: none;
       }
-      .logo-container img {
-        height: 60px; /* Adjust size as needed */
+
+      .error-message.visible {
+        display: block;
+      }
+
+      .error-icon {
+        font-size: 48px;
+        margin-bottom: 16px;
+      }
+
+      .error-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: #1f2937;
+        margin-bottom: 8px;
+      }
+
+      .error-text {
+        font-size: 14px;
+        color: #6b7280;
+        margin-bottom: 20px;
+      }
+
+      .retry-btn {
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        padding: 12px 24px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: transform 0.2s;
+      }
+
+      .retry-btn:active {
+        transform: scale(0.95);
+      }
+
+      /* Responsive Adjustments */
+      @media (max-width: 380px) {
+        .header {
+          padding: 10px 12px;
+        }
+
+        .title-text {
+          font-size: 14px;
+        }
+
+        .cert-icon {
+          width: 24px;
+          height: 24px;
+          font-size: 14px;
+        }
+
+        .main-content {
+          padding: 10px;
+        }
+      }
+
+      @media (orientation: landscape) and (max-height: 500px) {
+        .header {
+          padding: 8px 12px;
+        }
+
+        .main-content {
+          padding: 8px;
+        }
+
+        .iframe-wrapper {
+          border-radius: 12px;
+        }
+      }
+
+      /* Safe area for notched devices */
+      @supports (padding: env(safe-area-inset-top)) {
+        .header {
+          padding-top: calc(12px + env(safe-area-inset-top));
+        }
+
+        .main-content {
+          padding-bottom: calc(12px + env(safe-area-inset-bottom));
+        }
       }
     </style>
   </head>
   <body>
-    <iframe
-      src="https://script.google.com/macros/s/AKfycbzpYdTJsVxz9xi8SURHlkGnzFgcB4GdOZXyMrkY3FLL554XvIHLseBUqIHX6dZEyPeGBw/exec"
-      allowfullscreen="true"
-    >
-    </iframe>
+    <!-- Header -->
+    <div class="header">
+      <div class="header-title">
+        <div class="cert-icon">✓</div>
+        <span class="title-text"
+          >Visitors Management and Safety Compliance System - Carl Stahl for Industry Company</span
+        >
+      </div>
+      <button class="refresh-btn" id="refreshBtn" aria-label="Refresh">
+        <svg
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path
+            d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"
+          />
+        </svg>
+      </button>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+      <div class="iframe-wrapper">
+        <!-- Loading Overlay -->
+        <div class="loading-overlay" id="loadingOverlay">
+          <div class="loader">
+            <div class="loader-ring"></div>
+            <div class="loader-ring"></div>
+            <div class="loader-ring"></div>
+          </div>
+          <div class="loading-text">Loading Page</div>
+          <div class="loading-subtext">Please wait...</div>
+          <div class="status-indicator" style="margin-top: 20px">
+            <div class="status-dot"></div>
+            <span>Connecting</span>
+          </div>
+        </div>
+
+        <!-- Error Message -->
+        <div class="error-message" id="errorMessage">
+          <div class="error-icon">⚠️</div>
+          <div class="error-title">Connection Failed</div>
+          <div class="error-text">
+            Unable to load the page. Please check your internet connection and
+            try again.
+          </div>
+          <button class="retry-btn" onclick="reloadIframe()">Retry</button>
+        </div>
+
+        <!-- Iframe -->
+        <iframe
+          id="certFrame"
+          src="https://script.google.com/macros/s/AKfycbwjEzqAawX4Iiz8pq8oCKmFCcfQ_fGYqCHJAHEhGzvn_CY8QfHMQ9Vei70UDY2NOP4UEg/exec"
+          allowfullscreen="true"
+        ></iframe>
+      </div>
+    </div>
 
     <script>
-      window.onload = function () {
-        document
-          .querySelector("iframe")
-          .requestFullscreen()
-          .catch((err) => {
-            console.error(
-              `Error attempting to enable full-screen mode: ${err.message}`,
-            );
-          });
-      };
+      const loadingOverlay = document.getElementById("loadingOverlay");
+      const errorMessage = document.getElementById("errorMessage");
+      const certFrame = document.getElementById("certFrame");
+      const refreshBtn = document.getElementById("refreshBtn");
+      let loadTimeout;
+
+      // Hide loading when iframe loads successfully
+      certFrame.addEventListener("load", function () {
+        clearTimeout(loadTimeout);
+        setTimeout(() => {
+          loadingOverlay.classList.add("hidden");
+        }, 300);
+      });
+
+      // Show error if loading takes too long
+      loadTimeout = setTimeout(() => {
+        loadingOverlay.classList.add("hidden");
+        errorMessage.classList.add("visible");
+      }, 15000);
+
+      // Refresh button
+      refreshBtn.addEventListener("click", function () {
+        this.classList.add("spinning");
+        setTimeout(() => {
+          this.classList.remove("spinning");
+        }, 600);
+        reloadIframe();
+      });
+
+      // Reload iframe function
+      function reloadIframe() {
+        errorMessage.classList.remove("visible");
+        loadingOverlay.classList.remove("hidden");
+        certFrame.src = certFrame.src;
+
+        loadTimeout = setTimeout(() => {
+          loadingOverlay.classList.add("hidden");
+          errorMessage.classList.add("visible");
+        }, 15000);
+      }
+
+      // Prevent zoom on double tap
+      let lastTouchEnd = 0;
+      document.addEventListener(
+        "touchend",
+        function (event) {
+          const now = Date.now();
+          if (now - lastTouchEnd <= 300) {
+            event.preventDefault();
+          }
+          lastTouchEnd = now;
+        },
+        false,
+      );
+
+      // Handle orientation changes
+      window.addEventListener("orientationchange", function () {
+        setTimeout(() => {
+          window.scrollTo(0, 0);
+        }, 100);
+      });
+
+      // Prevent pull-to-refresh
+      let startY = 0;
+      document.body.addEventListener(
+        "touchstart",
+        function (e) {
+          startY = e.touches[0].pageY;
+        },
+        { passive: true },
+      );
+
+      document.body.addEventListener(
+        "touchmove",
+        function (e) {
+          const y = e.touches[0].pageY;
+          if (window.scrollY === 0 && y > startY) {
+            e.preventDefault();
+          }
+        },
+        { passive: false },
+      );
     </script>
   </body>
 </html>
